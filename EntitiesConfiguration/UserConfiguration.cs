@@ -12,7 +12,6 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(x => x.ApiKey).IsRequired();
         builder.Property(s => s.Name).IsRequired().HasMaxLength(250);
         builder.Property(s => s.IsActive).HasConversion<string>().HasMaxLength(30);
-        builder.Property(s => s.CreateDate).HasDefaultValue(DateTimeOffset.UtcNow);
         
     }
 }

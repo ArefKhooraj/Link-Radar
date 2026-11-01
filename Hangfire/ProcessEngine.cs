@@ -13,8 +13,6 @@ public class ProcessEngine(
     JobScheduler jobScheduler,
     ILogger<ProcessEngine> logger)
 {
-    private const int MaxStepAttempts = 3;
-
     public async Task Execute(ProcessJobDto processJobDto, CancellationToken cancellationToken)
     {
         var processState = await context.ProcessStates
@@ -38,6 +36,7 @@ public class ProcessEngine(
 
         var currentStep = processState.CurrentStep;
         var attempt = processState.RetryCount + 1;
+        var costBefore = processState.TotalCost;
 
         var stepLog = new ProcessStepLog
         {
@@ -54,52 +53,59 @@ public class ProcessEngine(
 
         var step = steps.FirstOrDefault(s => s.CanHandle(currentStep));
 
-        OperationResult result;
-
         if (step is null)
         {
-            result = OperationResult.FailureResult(Error.Unexpected(ErrorCodes.Process.StepNotFound,
+            var notFound = OperationResult.FailureResult(Error.Unexpected(ErrorCodes.Process.StepNotFound,
                 $"No step is registered for {currentStep}"));
+
+            await SaveFailure(processState, costBefore, stepLog, notFound, cancellationToken);
+            throw new ProcessStepException(currentStep, notFound.GetErrorMessage());
         }
-        else
+
+        OperationResult result;
+
+        try
         {
-            try
-            {
-                result = await step.Execute(processState, cancellationToken);
-            }
-            catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-            {
-                throw;
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                // job دیگری همین پردازش را جلو برده
-                logger.LogWarning(
-                    "Concurrency Conflict In Step {Step} For This ProcessStateId = {ProcessStateId}, Skip",
-                    currentStep, processState.Id);
-                return;
-            }
-            catch (Exception e)
-            {
-                // خطای پیش‌بینی‌نشده‌ی کد؛ مثل خطای گذرا تا سقف تلاش‌ها retry می‌شود
-                logger.LogError(e,
-                    "Get Exception In Step {Step} For This ProcessStateId = {ProcessStateId}, With This Message {Message}",
-                    currentStep, processState.Id, e.Message);
+            result = await step.Execute(processState, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            throw;
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            // job دیگری همین پردازش را جلو برده
+            logger.LogWarning(
+                "Concurrency Conflict In Step {Step} For This ProcessStateId = {ProcessStateId}, Skip",
+                currentStep, processState.Id);
+            return;
+        }
+        catch (Exception e)
+        {
+            // پیام EF کلی است و علت واقعی در inner exception است
+            var rootMessage = e.GetBaseException().Message;
 
-                result = OperationResult.FailureResult(new Error(ErrorCodes.Process.StepException, e.Message,
-                    ErrorType.Unexpected, IsTransient: true));
-            }
+            logger.LogError(e,
+                "Get Exception In Step {Step} For This ProcessStateId = {ProcessStateId}, With This Message {Message}",
+                currentStep, processState.Id, rootMessage);
+
+            await SaveFailure(processState, costBefore, stepLog,
+                OperationResult.FailureResult(Error.Unexpected(ErrorCodes.Process.StepException, rootMessage)),
+                cancellationToken);
+
+            // exception اصلی با stack trace به داشبورد Hangfire می‌رسد
+            throw;
         }
 
-        stepLog.FinishedAt = DateTimeOffset.UtcNow;
-        stepLog.IsSuccess = result.IsSuccess;
-        stepLog.ErrorCode = result.Errors.FirstOrDefault()?.Code;
-        stepLog.ErrorMessage = result.IsSuccess ? null : Truncate(result.GetErrorMessage());
+        if (!result.IsSuccess)
+        {
+            await SaveFailure(processState, costBefore, stepLog, result, cancellationToken);
+            throw new ProcessStepException(currentStep, result.GetErrorMessage());
+        }
 
-        if (result.IsSuccess)
-            await HandleSuccess(processState, stepLog, processJobDto, cancellationToken);
-        else
-            await HandleFailure(processState.Id, stepLog, result, processJobDto, cancellationToken);
+        stepLog.Cost = processState.TotalCost - costBefore;
+
+        await HandleSuccess(processState, stepLog, processJobDto, cancellationToken);
     }
 
     private async Task HandleSuccess(ProcessState processState, ProcessStepLog stepLog,
@@ -114,7 +120,10 @@ public class ProcessEngine(
         if (processState.Status == ProcessStatus.Completed)
             processState.CompletedAt = DateTimeOffset.UtcNow;
 
+        stepLog.FinishedAt = DateTimeOffset.UtcNow;
+        stepLog.IsSuccess = true;
         context.ProcessStepLogs.Add(stepLog);
+
         await context.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation(
@@ -125,42 +134,36 @@ public class ProcessEngine(
             jobScheduler.Enqueue(processJobDto);
     }
 
-    private async Task HandleFailure(int processStateId, ProcessStepLog stepLog, OperationResult result,
-        ProcessJobDto processJobDto, CancellationToken cancellationToken)
+    // فقط خطا را ثبت می‌کند؛ retry با Hangfire است و Status همان Running می‌ماند تا Requeue کار کند
+    private async Task SaveFailure(ProcessState failedState, decimal costBefore, ProcessStepLog stepLog,
+        OperationResult result, CancellationToken cancellationToken)
     {
+        var processStateId = failedState.Id;
+
+        // پول تماس‌های موفق این اجرا پرداخت شده و با Clear نباید گم شود
+        var totalCost = failedState.TotalCost;
+        stepLog.Cost = totalCost - costBefore;
+
         // تغییرات نیمه‌کاره‌ی step (در حافظه) نباید همراه وضعیت خطا ذخیره شوند
         context.ChangeTracker.Clear();
 
         var processState = await context.ProcessStates.FirstAsync(s => s.Id == processStateId, cancellationToken);
 
+        processState.TotalCost = totalCost;
         processState.RetryCount = stepLog.Attempt;
         processState.LastError = Truncate(result.GetErrorMessage());
         processState.LastChangeDate = DateTimeOffset.UtcNow;
 
+        stepLog.FinishedAt = DateTimeOffset.UtcNow;
+        stepLog.IsSuccess = false;
+        stepLog.ErrorCode = result.Errors.FirstOrDefault()?.Code;
+        stepLog.ErrorMessage = processState.LastError;
         context.ProcessStepLogs.Add(stepLog);
-
-        if (result.IsTransient && stepLog.Attempt < MaxStepAttempts)
-        {
-            await context.SaveChangesAsync(cancellationToken);
-
-            var delay = TimeSpan.FromSeconds(30 * stepLog.Attempt);
-
-            logger.LogWarning(
-                "Step {Step} Failed For This ProcessStateId = {ProcessStateId}, Retry In {Delay}, Error = {Error}",
-                stepLog.Step, processStateId, delay, processState.LastError);
-
-            jobScheduler.Schedule(processJobDto, delay);
-            return;
-        }
-
-        processState.Status = ProcessStatus.Failed;
-        processState.CompletedAt = DateTimeOffset.UtcNow;
 
         await context.SaveChangesAsync(cancellationToken);
 
-        // webhook خطا به ajebhom بعد از ساخت سرویس Webhook از همین‌جا فرستاده می‌شود
-        logger.LogError(
-            "Process Failed At Step {Step} For This ProcessStateId = {ProcessStateId}, Attempt = {Attempt}, Error = {Error}",
+        logger.LogWarning(
+            "Step {Step} Failed For This ProcessStateId = {ProcessStateId}, Attempt = {Attempt}, Error = {Error}",
             stepLog.Step, processStateId, stepLog.Attempt, processState.LastError);
     }
 

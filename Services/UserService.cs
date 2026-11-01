@@ -80,6 +80,44 @@ public class UserService(
     public static string HashApiKey(string apiKey)
         => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(apiKey)));
 
+    #region GetUserAsync
+
+    public async Task<OperationResult<UserDto>> GetUserAsync(CancellationToken cancellationToken)
+    {
+        var userId = currentUser.UserId;
+
+        logger.LogInformation("Start Get User For This UserId = {UserId}", userId);
+
+        try
+        {
+            var user = await context.Users.AsNoTracking()
+                .Where(s => s.Id == userId && !s.IsDeleted)
+                .Select(s => new { s.Id, s.Name, s.IsActive, s.CreateDate })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (user is null)
+            {
+                logger.LogWarning("Can Not Find User For Get With This UserId = {UserId}", userId);
+
+                return OperationResult<UserDto>.FailureResult(
+                    Error.NotFound(ErrorCodes.User.NotFound, "User not found"));
+            }
+
+            logger.LogInformation("Complete Get User For This UserId = {UserId}", userId);
+
+            return OperationResult<UserDto>.SuccessResult(
+                new UserDto(user.Id, user.Name, user.IsActive.ToString(), user.CreateDate));
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Get Exception When Get User For This UserId = {UserId}, With This Message {Message}",
+                userId, e.Message);
+            throw;
+        }
+    }
+
+    #endregion
+
     #region UpdateUserAsync
 
     public async Task<OperationResult> UpdateUserAsync(UpdateUserDto updateUserDto,
@@ -110,6 +148,43 @@ public class UserService(
         catch (Exception e)
         {
             logger.LogError(e, "Get Exception When Update User For This UserId = {UserId}, With This Message {Message}",
+                userId, e.Message);
+            throw;
+        }
+    }
+
+    #endregion
+
+    #region DeleteUserAsync
+
+    // حذف نرم؛ Analysisهای کاربر برای گزارش هزینه می‌مانند و ValidateApiKeyAsync دیگر کلیدش را قبول نمی‌کند
+    public async Task<OperationResult> DeleteUserAsync(CancellationToken cancellationToken)
+    {
+        var userId = currentUser.UserId;
+
+        logger.LogInformation("Start Delete User For This UserId = {UserId}", userId);
+
+        try
+        {
+            var changedRow = await context.Users.Where(s => s.Id == userId && !s.IsDeleted)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(f => f.IsDeleted, true)
+                    .SetProperty(f => f.LastChangeDate, DateTimeOffset.UtcNow), cancellationToken);
+
+            if (changedRow == 0)
+            {
+                logger.LogWarning("Can Not Find User For Delete With This UserId = {UserId}", userId);
+
+                return OperationResult.FailureResult(Error.NotFound(ErrorCodes.User.NotFound, "User not found"));
+            }
+
+            logger.LogInformation("Complete Delete User For This UserId = {UserId}", userId);
+
+            return OperationResult.SuccessResult();
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "Get Exception When Delete User For This UserId = {UserId}, With This Message {Message}",
                 userId, e.Message);
             throw;
         }

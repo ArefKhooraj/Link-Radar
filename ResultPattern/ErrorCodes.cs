@@ -15,6 +15,14 @@ public static class ErrorCodes
         public const string AlreadyExists = "user.already_exists";
     }
 
+    public static class Analysis
+    {
+        public const string InvalidTarget = "analysis.invalid_target";
+        public const string PageNotSupported = "analysis.page_not_supported";
+        public const string InvalidCompetitor = "analysis.invalid_competitor";
+        public const string KeywordRequired = "analysis.keyword_required";
+    }
+
     public static class Process
     {
         public const string StepNotFound = "process.step_not_found";
@@ -28,5 +36,10 @@ public static class ErrorCodes
         public const string TaskError = "dataforseo.task_error";
         public const string InvalidResponse = "dataforseo.invalid_response";
         public const string RequestFailed = "dataforseo.request_failed";
+    }
+
+    public static class Ai
+    {
+        public const string RequestFailed = "ai.request_failed";
     }
 }

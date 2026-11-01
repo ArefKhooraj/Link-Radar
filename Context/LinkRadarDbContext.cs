@@ -19,6 +19,10 @@ public class LinkRadarDbContext(DbContextOptions<LinkRadarDbContext> options) : 
 
     public DbSet<ProcessStepLog> ProcessStepLogs { get; set; }
 
+    public DbSet<BacklinkSummary> BacklinkSummaries { get; set; }
+    
+    public DbSet<Backlink> Backlinks { get; set; }
+
     #endregion
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

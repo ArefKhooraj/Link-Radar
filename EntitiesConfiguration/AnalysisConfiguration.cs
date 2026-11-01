@@ -9,7 +9,9 @@ public class AnalysisConfiguration : IEntityTypeConfiguration<Analysis>
     public void Configure(EntityTypeBuilder<Analysis> builder)
     {
         builder.HasKey(x => x.Id);
-        builder.Property(s => s.Domain).IsRequired().HasMaxLength(253);
+        builder.Property(s => s.Target).IsRequired().HasMaxLength(2048);
+        builder.Property(s => s.TargetType).HasConversion<string>().HasMaxLength(20);
+        builder.Property(s => s.Keyword).HasMaxLength(200);
         builder.Property(s => s.CountryCode).IsRequired().HasMaxLength(2).IsFixedLength();
         builder.Property(s => s.BrandName).HasMaxLength(250);
 

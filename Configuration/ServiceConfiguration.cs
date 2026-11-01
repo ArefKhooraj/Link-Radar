@@ -1,5 +1,7 @@
+using LinkRadar.Api.Hangfire.Interface;
 using LinkRadar.Api.Interface;
 using LinkRadar.Api.Services;
+using LinkRadar.Api.Steps;
 
 namespace LinkRadar.Api.Configuration;
 
@@ -11,6 +13,20 @@ public static class ServiceConfiguration
 
         services.AddScoped<ICurrentUser, CurrentUser>();
         services.AddScoped<UserService>();
+        services.AddScoped<AnalyzeService>();
+
+        #region Steps
+
+        //Step 1
+        services.AddScoped<IProcessStep,CheckDomainSummary>();
+
+        //Step 2
+        services.AddScoped<IProcessStep,DetectCompetitor>();
+
+        //Step 3
+        services.AddScoped<IProcessStep,GetBacklinks>();
+
+        #endregion
 
         return services;
     }

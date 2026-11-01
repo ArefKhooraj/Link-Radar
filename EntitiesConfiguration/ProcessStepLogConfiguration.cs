@@ -12,6 +12,7 @@ public class ProcessStepLogConfiguration : IEntityTypeConfiguration<ProcessStepL
         builder.Property(s => s.Step).HasConversion<string>().IsRequired().HasMaxLength(50);
         builder.Property(s => s.ErrorCode).HasMaxLength(100);
         builder.Property(s => s.ErrorMessage).HasMaxLength(2000);
+        builder.Property(s => s.Cost).HasPrecision(18, 6);
 
         #region Relation
 

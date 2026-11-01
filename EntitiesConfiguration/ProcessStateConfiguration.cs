@@ -10,8 +10,9 @@ public class ProcessStateConfiguration : IEntityTypeConfiguration<ProcessState>
     {
         builder.HasKey(x => x.Id);
         builder.Property(s => s.CurrentStep).HasConversion<string>().IsRequired().HasMaxLength(50);
-        builder.Property(s => s.Status).HasConversion<string>().IsRequired().HasMaxLength(30);
+        builder.Property(s => s.Status).HasConversion<string>().IsRequired().HasMaxLength(30); 
         builder.Property(s => s.LastError).HasMaxLength(2000);
+        builder.Property(s => s.TotalCost).HasPrecision(18, 6);
         builder.Property(s => s.RowVersion).IsRowVersion();
 
         // job دوره‌ای timeout با این ایندکس پردازش‌های گیرکرده را پیدا می‌کند

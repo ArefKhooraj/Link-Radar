@@ -4,7 +4,7 @@ public class BaseEntity<T>
 {
     public T Id { get; set; } = default!;
 
-    public DateTimeOffset CreateDate { get; set; }
+    public DateTimeOffset CreateDate { get; set; } = DateTimeOffset.UtcNow;
 
     public DateTimeOffset? LastChangeDate { get; set; }
 
