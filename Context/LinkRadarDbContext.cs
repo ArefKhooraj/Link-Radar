@@ -22,6 +22,8 @@ public class LinkRadarDbContext(DbContextOptions<LinkRadarDbContext> options) : 
     public DbSet<BacklinkSummary> BacklinkSummaries { get; set; }
     
     public DbSet<Backlink> Backlinks { get; set; }
+    
+    public DbSet<BacklinkAnchor> BacklinkAnchors { get; set; }
 
     #endregion
 
