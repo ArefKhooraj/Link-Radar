@@ -34,6 +34,8 @@ public class Analysis : BaseEntity
     public ICollection<BacklinkAnchor> BacklinkAnchors { get; set; } = [];
     
     public ICollection<ReferringDomain> ReferringDomains { get; set; } = [];
+    
+    public ICollection<BacklinkTimeSeries> BacklinkTimeSeries { get; set; } = [];
 
     #endregion
 }

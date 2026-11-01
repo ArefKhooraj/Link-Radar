@@ -31,6 +31,9 @@ public static class ServiceConfiguration
 
         //Step 5
         services.AddScoped<IProcessStep,GetReferringDomains>();
+        
+        //Step 6
+        services.AddScoped<IProcessStep,GetTimeSeries>();
 
         #endregion
 
