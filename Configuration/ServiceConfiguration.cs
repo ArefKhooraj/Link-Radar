@@ -35,6 +35,9 @@ public static class ServiceConfiguration
         //Step 6
         services.AddScoped<IProcessStep,GetTimeSeries>();
 
+        //Step 7
+        services.AddScoped<IProcessStep,GetLinkGap>();
+
         #endregion
 
         return services;

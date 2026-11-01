@@ -28,6 +28,8 @@ public class LinkRadarDbContext(DbContextOptions<LinkRadarDbContext> options) : 
     public DbSet<ReferringDomain> ReferringDomains { get; set; }
     
     public DbSet<BacklinkTimeSeries> BacklinkTimeSeries { get; set; }
+    
+    public DbSet<LinkGapDomain> LinkGapDomains { get; set; }
 
     #endregion
 

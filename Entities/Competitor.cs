@@ -10,11 +10,13 @@ public class Competitor : BaseEntity
 
     public CompetitorSource Source { get; set; }
 
+    public DateTimeOffset? LinkGapFetchedAt { get; set; }
+
     #region Relation
 
     public Analysis Analysis { get; set; } = null!;
-    
-    
+
+    public ICollection<LinkGapDomain> LinkGapDomains { get; set; } = [];
 
     #endregion
 }
