@@ -10,7 +10,7 @@ public class LinkRadarDbContext(DbContextOptions<LinkRadarDbContext> options) : 
     #region DbSet
 
     public DbSet<User> Users { get; set; }
-    
+
     public DbSet<Webhook> Webhooks { get; set; }
 
     public DbSet<Analysis> Analyses { get; set; }
@@ -20,10 +20,12 @@ public class LinkRadarDbContext(DbContextOptions<LinkRadarDbContext> options) : 
     public DbSet<ProcessStepLog> ProcessStepLogs { get; set; }
 
     public DbSet<BacklinkSummary> BacklinkSummaries { get; set; }
-    
+
     public DbSet<Backlink> Backlinks { get; set; }
-    
+
     public DbSet<BacklinkAnchor> BacklinkAnchors { get; set; }
+
+    public DbSet<ReferringDomain> ReferringDomains { get; set; }
 
     #endregion
 

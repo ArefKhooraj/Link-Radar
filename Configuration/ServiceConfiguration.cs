@@ -29,6 +29,9 @@ public static class ServiceConfiguration
         //Step 4
         services.AddScoped<IProcessStep,GetAnchors>();
 
+        //Step 5
+        services.AddScoped<IProcessStep,GetReferringDomains>();
+
         #endregion
 
         return services;
