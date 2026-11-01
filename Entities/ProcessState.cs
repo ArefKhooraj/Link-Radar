@@ -52,6 +52,7 @@ public enum CurrentStep
     GetReferringDomains,
     GetTimeSeries,
     GetLinkGap,
+    GetCompetitorSummaries,
     ComputeMetrics,
     GenerateAiAnalysis,
     SendToUserWebhook

@@ -38,6 +38,9 @@ public static class ServiceConfiguration
         //Step 7
         services.AddScoped<IProcessStep,GetLinkGap>();
 
+        //Step 8
+        services.AddScoped<IProcessStep,GetCompetitorSummaries>();
+
         #endregion
 
         return services;

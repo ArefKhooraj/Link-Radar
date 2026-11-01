@@ -70,7 +70,7 @@ public class GetLinkGap(DataForSeoService dataForSeoService, LinkRadarDbContext 
         if (transientErrors.Count > 0)
             return OperationResult.FailureResult(transientErrors);
 
-        processState.CurrentStep = CurrentStep.ComputeMetrics;
+        processState.CurrentStep = CurrentStep.GetCompetitorSummaries;
 
         await context.SaveChangesAsync(cancellationToken);
 

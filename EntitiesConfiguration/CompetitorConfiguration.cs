@@ -11,6 +11,8 @@ public class CompetitorConfiguration : IEntityTypeConfiguration<Competitor>
         builder.HasKey(x => x.Id);
         builder.Property(s => s.Domain).IsRequired().HasMaxLength(253);
         builder.Property(s => s.Source).HasConversion<string>().HasMaxLength(20);
+        builder.Property(s => s.ContentLinksPct).HasPrecision(5, 2);
+        builder.Property(s => s.FooterLinksPct).HasPrecision(5, 2);
 
         // یک رقیب دو بار برای یک پایش ثبت نمی‌شود
         builder.HasIndex(s => new { s.AnalysisId, s.Domain }).IsUnique();
