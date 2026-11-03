@@ -48,34 +48,7 @@ public class GetBacklinks(DataForSeoService dataForSeoService, ILogger<GetBackli
         var callResult = dataForSeoResult.Result!;
         var items = callResult.Result?.Items ?? [];
 
-        // این سه ستون اجباری‌اند؛ یک ردیف ناقص نباید ذخیره‌ی بقیه را خراب کند
-        var backlinks = items
-            .Where(s => !string.IsNullOrWhiteSpace(s.DomainFrom)
-                        && !string.IsNullOrWhiteSpace(s.UrlFrom)
-                        && !string.IsNullOrWhiteSpace(s.UrlTo))
-            .Select(s => new Backlink
-            {
-                AnalysisId = processState.AnalysisId,
-                DomainFrom = s.DomainFrom!,
-                UrlFrom = s.UrlFrom!,
-                UrlTo = s.UrlTo!,
-                Anchor = s.Anchor,
-                ItemType = s.ItemType,
-                DoFollow = s.Dofollow ?? false,
-                Attributes = s.Attributes is { Count: > 0 } ? string.Join(",", s.Attributes) : null,
-                Rank = s.Rank ?? 0,
-                PageFromRank = s.PageFromRank ?? 0,
-                DomainFromRank = s.DomainFromRank ?? 0,
-                BacklinkSpamScore = s.BacklinkSpamScore ?? 0,
-                SemanticLocation = string.IsNullOrWhiteSpace(s.SemanticLocation) ? null : s.SemanticLocation,
-                PageFromLanguage = s.PageFromLanguage,
-                TldFrom = s.TldFrom,
-                IsBroken = s.IsBroken ?? false,
-                UrlToStatusCode = s.UrlToStatusCode,
-                FirstSeen = s.FirstSeen,
-                LastSeen = s.LastSeen
-            })
-            .ToList();
+        var backlinks = MapBacklinks(items, processState.AnalysisId, isLost: false);
 
         if (backlinks.Count < items.Count)
             logger.LogWarning(
@@ -89,7 +62,7 @@ public class GetBacklinks(DataForSeoService dataForSeoService, ILogger<GetBackli
 
         context.Backlinks.AddRange(backlinks);
 
-        processState.CurrentStep = CurrentStep.GetAnchors;
+        processState.CurrentStep = CurrentStep.GetLostBacklinks;
 
         await context.SaveChangesAsync(cancellationToken);
 
@@ -99,6 +72,37 @@ public class GetBacklinks(DataForSeoService dataForSeoService, ILogger<GetBackli
 
         return OperationResult.SuccessResult();
     }
+
+    // مشترک بین GetBacklinks و GetLostBacklinks تا ستون‌ها در هر دو یکسان پر شوند
+    internal static List<Backlink> MapBacklinks(List<BacklinkItem> items, int analysisId, bool isLost) => items
+        // این سه ستون اجباری‌اند؛ یک ردیف ناقص نباید ذخیره‌ی بقیه را خراب کند
+        .Where(s => !string.IsNullOrWhiteSpace(s.DomainFrom)
+                    && !string.IsNullOrWhiteSpace(s.UrlFrom)
+                    && !string.IsNullOrWhiteSpace(s.UrlTo))
+        .Select(s => new Backlink
+        {
+            AnalysisId = analysisId,
+            DomainFrom = s.DomainFrom!,
+            UrlFrom = s.UrlFrom!,
+            UrlTo = s.UrlTo!,
+            Anchor = s.Anchor,
+            ItemType = s.ItemType,
+            DoFollow = s.Dofollow ?? false,
+            Attributes = s.Attributes is { Count: > 0 } ? string.Join(",", s.Attributes) : null,
+            Rank = s.Rank ?? 0,
+            PageFromRank = s.PageFromRank ?? 0,
+            DomainFromRank = s.DomainFromRank ?? 0,
+            BacklinkSpamScore = s.BacklinkSpamScore ?? 0,
+            SemanticLocation = string.IsNullOrWhiteSpace(s.SemanticLocation) ? null : s.SemanticLocation,
+            PageFromLanguage = s.PageFromLanguage,
+            TldFrom = s.TldFrom,
+            IsBroken = s.IsBroken ?? false,
+            UrlToStatusCode = s.UrlToStatusCode,
+            FirstSeen = s.FirstSeen,
+            LastSeen = s.LastSeen,
+            IsLost = isLost
+        })
+        .ToList();
 }
 
 #region Request

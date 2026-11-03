@@ -48,6 +48,7 @@ public enum CurrentStep
     CheckDomainSummary,
     DetectCompetitors,
     GetBacklinks,
+    GetLostBacklinks,
     GetAnchors,
     GetReferringDomains,
     GetTimeSeries,

@@ -43,6 +43,9 @@ public class Backlink : BaseEntity
 
     public DateTimeOffset? LastSeen { get; set; }
 
+    // true یعنی این لینک حذف شده؛ LastSeen آخرین باری است که دیده شده
+    public bool IsLost { get; set; }
+
     #region Relation
 
     public Analysis Analysis { get; set; } = null!;
