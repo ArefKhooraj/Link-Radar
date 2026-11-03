@@ -16,7 +16,8 @@ public class GetCompetitorSummaries(
 {
     private const int MaxParallelCalls = 5;
 
-    private static readonly string[] ContentLocations = ["article", "main", "section"];
+    // ComputeMetrics هم از همین استفاده می‌کند تا «محتوا» در هر دو یکی باشد
+    internal static readonly string[] ContentLocations = ["article", "main", "section"];
 
     public bool CanHandle(CurrentStep currentStep) => currentStep is CurrentStep.GetCompetitorSummaries;
 

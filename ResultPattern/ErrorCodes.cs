@@ -42,4 +42,10 @@ public static class ErrorCodes
     {
         public const string RequestFailed = "ai.request_failed";
     }
+
+    public static class Webhook
+    {
+        public const string RequestFailed = "webhook.request_failed";
+        public const string Rejected = "webhook.rejected";
+    }
 }

@@ -31,6 +31,12 @@ public class LinkRadarDbContext(DbContextOptions<LinkRadarDbContext> options) : 
     
     public DbSet<LinkGapDomain> LinkGapDomains { get; set; }
 
+    public DbSet<AnalysisMetrics> AnalysisMetrics { get; set; }
+
+    public DbSet<LinkOpportunity> LinkOpportunities { get; set; }
+
+    public DbSet<AnalysisReport> AnalysisReports { get; set; }
+
     #endregion
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)

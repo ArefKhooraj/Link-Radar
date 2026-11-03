@@ -12,6 +12,9 @@ public class Competitor : BaseEntity
 
     public DateTimeOffset? LinkGapFetchedAt { get; set; }
 
+    // null یعنی صفحه‌های فرصت این رقیب هنوز گرفته نشده
+    public DateTimeOffset? OpportunityPagesFetchedAt { get; set; }
+
     // null یعنی آمار این رقیب هنوز گرفته نشده؛ ستون‌های آمار در خطای دائمی null می‌مانند
     public DateTimeOffset? SummaryFetchedAt { get; set; }
 

@@ -20,6 +20,9 @@ public class Analysis : BaseEntity
 
     public string? BrandName { get; set; }
 
+    // املاهای دیگر برند که در انکرهای واقعی دیده شده‌اند؛ DetectBrandAliases پرش می‌کند
+    public List<string> BrandAliases { get; set; } = [];
+
     #region Relation
 
     public User User { get; set; } = null!;
@@ -36,6 +39,12 @@ public class Analysis : BaseEntity
     public ICollection<ReferringDomain> ReferringDomains { get; set; } = [];
     
     public ICollection<BacklinkTimeSeries> BacklinkTimeSeries { get; set; } = [];
+
+    public AnalysisMetrics? AnalysisMetrics { get; set; }
+
+    public AnalysisReport? AnalysisReport { get; set; }
+
+    public ICollection<LinkOpportunity> LinkOpportunities { get; set; } = [];
 
     #endregion
 }

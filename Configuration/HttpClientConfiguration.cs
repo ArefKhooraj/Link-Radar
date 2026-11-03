@@ -70,6 +70,16 @@ public static class HttpClientConfiguration
         return services;
     }
 
+    public const string WebhookClientName = "Webhook";
+
+    public static IServiceCollection AddWebhookConfiguration(this IServiceCollection services)
+    {
+        // سرور ajebhom نباید job را طولانی نگه دارد؛ در خطا Hangfire دوباره می‌فرستد
+        services.AddHttpClient(WebhookClientName, client => { client.Timeout = TimeSpan.FromSeconds(30); });
+
+        return services;
+    }
+
     public static IServiceCollection AddDataForSeoConfiguration(this IServiceCollection services)
     {
         services.AddHttpClient<DataForSeoService>(client =>

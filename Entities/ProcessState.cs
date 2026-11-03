@@ -50,11 +50,14 @@ public enum CurrentStep
     GetBacklinks,
     GetLostBacklinks,
     GetAnchors,
+    DetectBrandAliases,
     GetReferringDomains,
     GetTimeSeries,
     GetLinkGap,
     GetCompetitorSummaries,
     ComputeMetrics,
+    GetOpportunityPages,
+    ClassifyOpportunities,
     GenerateAiAnalysis,
     SendToUserWebhook
 }

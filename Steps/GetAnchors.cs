@@ -67,7 +67,7 @@ public class GetAnchors(ILogger<GetAnchors> logger, LinkRadarDbContext context, 
 
         context.BacklinkAnchors.AddRange(anchors);
 
-        processState.CurrentStep = CurrentStep.GetReferringDomains;
+        processState.CurrentStep = CurrentStep.DetectBrandAliases;
 
         await context.SaveChangesAsync(cancellationToken);
 

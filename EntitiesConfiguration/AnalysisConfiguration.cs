@@ -15,6 +15,9 @@ public class AnalysisConfiguration : IEntityTypeConfiguration<Analysis>
         builder.Property(s => s.CountryCode).IsRequired().HasMaxLength(2).IsFixedLength();
         builder.Property(s => s.BrandName).HasMaxLength(250);
 
+        // ردیف‌های قبلی با migration آرایه‌ی خالی می‌گیرند، نه رشته‌ی خالی که JSON معتبر نیست
+        builder.Property(s => s.BrandAliases).HasDefaultValueSql("'[]'");
+
         // یک درخواست تکراری از ajebhom پایش دوم نمی‌سازد
         builder.HasIndex(s => new { s.UserId, s.EntityId }).IsUnique();
 

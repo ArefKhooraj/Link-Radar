@@ -15,6 +15,9 @@ public static class ServiceConfiguration
         services.AddScoped<UserService>();
         services.AddScoped<AnalyzeService>();
 
+        // Scoped تا Context داخلش همان DbContext موتور باشد و تغییرات processState ذخیره شود
+        services.AddScoped(typeof(CommonServices<>));
+
         #region Steps
 
         //Step 1
@@ -32,6 +35,9 @@ public static class ServiceConfiguration
         //Step 4
         services.AddScoped<IProcessStep,GetAnchors>();
 
+        //Step 4.1
+        services.AddScoped<IProcessStep,DetectBrandAliases>();
+
         //Step 5
         services.AddScoped<IProcessStep,GetReferringDomains>();
         
@@ -43,6 +49,21 @@ public static class ServiceConfiguration
 
         //Step 8
         services.AddScoped<IProcessStep,GetCompetitorSummaries>();
+
+        //Step 9
+        services.AddScoped<IProcessStep,ComputeMetrics>();
+
+        //Step 10
+        services.AddScoped<IProcessStep,GetOpportunityPages>();
+
+        //Step 11
+        services.AddScoped<IProcessStep,ClassifyOpportunities>();
+
+        //Step 12
+        services.AddScoped<IProcessStep,GenerateAiAnalysis>();
+
+        //Step 13
+        services.AddScoped<IProcessStep,SendToUserWebhook>();
 
         #endregion
 

@@ -20,6 +20,8 @@ builder.Services.AddOpenAiConfiguration();
 builder.Configuration.GetSection("AvalAi").Get<AvalAi>();
 builder.Services.AddAvalAiConfiguration();
 
+builder.Services.AddWebhookConfiguration();
+
 builder.Services.AddServiceConfiguration();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
